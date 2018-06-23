@@ -1,5 +1,7 @@
 package com.arhiser.scheduler.scheduler.Task;
 
+import java.util.List;
+
 public interface TaskFunction<R> {
-    R execute(TaskDependencyResult taskDependencyResult) throws Throwable;
+    R execute(List<Task> dependencies) throws Throwable;
 }

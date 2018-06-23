@@ -2,11 +2,11 @@ package com.arhiser.scheduler.scheduler.Task;
 
 import java.util.ArrayList;
 
-public abstract class Task<O> implements TaskDependencyResult, Cancelable {
+public abstract class Task<O> implements Cancelable {
 
-    protected O result;
+    protected volatile O result;
 
-    protected Throwable error;
+    protected volatile Throwable error;
 
     protected ArrayList<Task> dependencies = new ArrayList<>();
 
@@ -67,26 +67,20 @@ public abstract class Task<O> implements TaskDependencyResult, Cancelable {
     public void dispatchFailed(Throwable error) {
         this.error = error;
         if (parent != null) {
-            parent.dispatchFailed(error);
+            if (!parent.isFailed()) {
+                parent.dispatchFailed(error);
+            }
         }
         for(Task task: dependencies) {
-            task.dispatchFailed(error);
+            if (!task.isFailed()) {
+                task.dispatchFailed(error);
+            }
         }
     }
 
     public abstract Class<O> getResultClass();
 
     public void execute() throws Throwable {
-        result = function.execute(this);
-    }
-
-    @Override
-    public <R> R getResultOfClass(Class<R> clazz) {
-        for(Task task: dependencies) {
-            if (task.getResultClass() == clazz) {
-               return (R)task.getResult();
-            }
-        }
-        throw new RuntimeException("Can't find result of class: " + clazz.getCanonicalName());
+        result = function.execute(dependencies);
     }
 }

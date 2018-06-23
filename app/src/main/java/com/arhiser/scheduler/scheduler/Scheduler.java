@@ -21,6 +21,8 @@ public class Scheduler<T extends Task> {
     private void initThreadPool(int threadPoolSize) {
         for (int i = 0; i < threadPoolSize; i++) {
             threads[i] = new Thread(threadRunnable);
+        }
+        for (int i = 0; i < threadPoolSize; i++) {
             threads[i].start();
         }
     }

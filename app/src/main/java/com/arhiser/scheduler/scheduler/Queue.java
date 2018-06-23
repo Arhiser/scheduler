@@ -80,7 +80,11 @@ public class Queue<T extends Task> {
         }
         tasksCanBeExecuted.clear();
         for(T task: tasks) {
-            if (task.isDependenciesSatisfied() && !task.isResolved() && !task.isCancelled()) {
+            if (task.isDependenciesSatisfied()
+                    && !task.isResolved()
+                    && !task.isCancelled()
+                    && !task.isFailed()
+                    && !tasksInExecution.contains(task)) {
                 tasksCanBeExecuted.add(task);
             }
         }

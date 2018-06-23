@@ -1,15 +1,14 @@
 package com.arhiser.scheduler;
 
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 
 import com.arhiser.scheduler.implementation.AndroidTask;
 import com.arhiser.scheduler.scheduler.Condition;
 import com.arhiser.scheduler.scheduler.Scheduler;
 import com.arhiser.scheduler.scheduler.Task.NoResult;
-import com.arhiser.scheduler.scheduler.Task.TaskDependencyResult;
-import com.arhiser.scheduler.scheduler.Task.TaskFunction;
+import com.arhiser.scheduler.scheduler.Task.Task;
 
 import java.util.ArrayList;
 
@@ -22,43 +21,59 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        AndroidTask<NoResult> mainTask = new AndroidTask<NoResult>(new TaskFunction<NoResult>() {
-            @Override
-            public NoResult execute(TaskDependencyResult taskDependencyResult) throws Throwable {
-                Log.v("aaaaaaaaaaaaaaa", "main");
-                return NoResult.value;
-            }
-        }) {
-            @Override
-            public Class<NoResult> getResultClass() {
-                return NoResult.class;
-            }
-        };
-        mainTask.addDependency(new AndroidTask<NoResult>(new TaskFunction<NoResult>() {
-            @Override
-            public NoResult execute(TaskDependencyResult taskDependencyResult) throws Throwable {
-                Log.v("aaaaaaaaaaaaaaa", "sec1");
-                return NoResult.value;
-            }
-        }) {
-            @Override
-            public Class<NoResult> getResultClass() {
-                return NoResult.class;
-            }
-        });
-        mainTask.addDependency(new AndroidTask<NoResult>(new TaskFunction<NoResult>() {
-            @Override
-            public NoResult execute(TaskDependencyResult taskDependencyResult) throws Throwable {
-                Log.v("aaaaaaaaaaaaaaa", "sec2");
-                return NoResult.value;
-            }
-        }) {
-            @Override
-            public Class<NoResult> getResultClass() {
-                return NoResult.class;
-            }
-        });
+        scheduler.post(AndroidTask.create(taskDependencyResult -> {
+                    Log.v("aaaaaaaaaaaaaaa", "main");
+                    return NoResult.value;
+                },
+                NoResult.class,
+                result -> Log.v("aaaaaaaaaaaaaaa", "success"),
+                error -> Log.v("aaaaaaaaaaaaaaa", "error")
+        )
+            .addDependency(AndroidTask.create(taskDependencyResult -> {
+                    Log.v("aaaaaaaaaaaaaaa", "dep1");
+                    throw new RuntimeException("ggg");
+                    //return NoResult.value;
+                }, NoResult.class))
+            .addDependency(AndroidTask.create(taskDependencyResult -> {
+                    Log.v("aaaaaaaaaaaaaaa", "dep2");
+                    return NoResult.value;
+                }, NoResult.class)));
 
-        scheduler.post(mainTask);
+        scheduler.post(AndroidTask.create(taskDependencyResult -> {
+                    Log.v("aaaaaaaaaaaaaaa", "main_2");
+                    return NoResult.value;
+                },
+                NoResult.class,
+                result -> Log.v("aaaaaaaaaaaaaaa", "success"),
+                error -> Log.v("aaaaaaaaaaaaaaa", "error")
+        )
+                .addDependency(AndroidTask.create(taskDependencyResult -> {
+                    Log.v("aaaaaaaaaaaaaaa", "dep1_2");
+                    return NoResult.value;
+                }, NoResult.class))
+                .addDependency(AndroidTask.create(taskDependencyResult -> {
+                    Log.v("aaaaaaaaaaaaaaa", "dep2_2");
+                    return NoResult.value;
+                }, NoResult.class)));
+
+        scheduler.post(AndroidTask.create(taskDependencyResult -> {
+                    int sum = 0;
+                    for(Task task: taskDependencyResult) {
+                        sum += (Integer)task.getResult();
+                    }
+                    return sum;
+                },
+                Integer.class,
+                result -> Log.v("aaaaaaaaaaaaaaa", "success: " + result),
+                error -> Log.v("aaaaaaaaaaaaaaa", "error")
+        )
+                .addDependency(AndroidTask.create(taskDependencyResult -> {
+                    Log.v("aaaaaaaaaaaaaaa", "calc1");
+                    return 1;
+                }, Integer.class))
+                .addDependency(AndroidTask.create(taskDependencyResult -> {
+                    Log.v("aaaaaaaaaaaaaaa", "calc2");
+                    return 3;
+                }, Integer.class)));
     }
 }

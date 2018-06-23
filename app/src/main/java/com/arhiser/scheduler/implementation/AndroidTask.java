@@ -5,7 +5,7 @@ import android.os.Handler;
 import com.arhiser.scheduler.scheduler.Task.Task;
 import com.arhiser.scheduler.scheduler.Task.TaskFunction;
 
-public abstract class AndroidTask<O> extends Task<O> {
+public class AndroidTask<O> extends Task<O> {
 
     protected OnResult<O> onResult;
 
@@ -13,9 +13,31 @@ public abstract class AndroidTask<O> extends Task<O> {
 
     protected Handler handler;
 
-    protected AndroidTask(TaskFunction<O> function) {
+    protected Class<O> resultClass;
+
+    public static <O> AndroidTask<O> create(TaskFunction<O> function, Class<O> resultClass) {
+        return new AndroidTask<>(function, resultClass);
+    }
+
+    public static <O> AndroidTask<O> create(TaskFunction<O> function, Class<O> resultClass, OnResult<O> onResult, OnError onError) {
+        return new AndroidTask<>(function, resultClass, onResult, onError);
+    }
+
+    private AndroidTask(TaskFunction<O> function, Class<O> resultClass) {
         super(function);
+        this.resultClass = resultClass;
         handler = new Handler();
+    }
+
+    private AndroidTask(TaskFunction<O> function, Class<O> resultClass, OnResult<O> onResult, OnError onError) {
+        this(function, resultClass);
+        this.onResult = onResult;
+        this.onError = onError;
+    }
+
+    @Override
+    public Class<O> getResultClass() {
+        return resultClass;
     }
 
     @Override
@@ -48,14 +70,9 @@ public abstract class AndroidTask<O> extends Task<O> {
         this.parent = parent;
     }
 
-    public AndroidTask(TaskFunction<O> function, OnResult<O> onResult, OnError onError) {
-        super(function);
-        this.onResult = onResult;
-        this.onError = onError;
-    }
-
-    public void addDependency(AndroidTask task) {
+    public AndroidTask<O> addDependency(AndroidTask task) {
         task.setParent(this);
         dependencies.add(task);
+        return this;
     }
 }
