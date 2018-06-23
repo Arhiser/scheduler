@@ -5,16 +5,23 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 
 import com.arhiser.scheduler.implementation.AndroidTask;
+import com.arhiser.scheduler.implementation.priority.PriorityCondition;
 import com.arhiser.scheduler.scheduler.Condition;
 import com.arhiser.scheduler.scheduler.Scheduler;
 import com.arhiser.scheduler.scheduler.Task.NoResult;
 import com.arhiser.scheduler.scheduler.Task.Task;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
-    Scheduler<AndroidTask> scheduler = new Scheduler<>(4, new ArrayList<Condition<AndroidTask>>());
+    private static final String TAG = "tasks";
+
+    Scheduler<AndroidTask> scheduler = new Scheduler<>(4, Arrays.asList(new PriorityCondition()));
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -22,37 +29,44 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         scheduler.post(AndroidTask.create(taskDependencyResult -> {
-                    Log.v("aaaaaaaaaaaaaaa", "main");
+                    Log.v("TAG", "main");
+                    Thread.sleep(1000);
                     return NoResult.value;
                 },
                 NoResult.class,
-                result -> Log.v("aaaaaaaaaaaaaaa", "success"),
-                error -> Log.v("aaaaaaaaaaaaaaa", "error")
+                result -> Log.v("TAG", "success"),
+                error -> Log.v("TAG", "error")
         )
-            .addDependency(AndroidTask.create(taskDependencyResult -> {
-                    Log.v("aaaaaaaaaaaaaaa", "dep1");
-                    throw new RuntimeException("ggg");
-                    //return NoResult.value;
-                }, NoResult.class))
-            .addDependency(AndroidTask.create(taskDependencyResult -> {
-                    Log.v("aaaaaaaaaaaaaaa", "dep2");
-                    return NoResult.value;
-                }, NoResult.class)));
+        .addDependency(AndroidTask.create(taskDependencyResult -> {
+                Log.v("TAG", "dep1");
+                Thread.sleep(1000);
+                throw new RuntimeException("ggg");
+                //return NoResult.value;
+            }, NoResult.class))
+        .addDependency(AndroidTask.create(taskDependencyResult -> {
+                Log.v("TAG", "dep2");
+                Thread.sleep(1000);
+                return NoResult.value;
+            }, NoResult.class))
+        );
 
         scheduler.post(AndroidTask.create(taskDependencyResult -> {
-                    Log.v("aaaaaaaaaaaaaaa", "main_2");
+                    Log.v("TAG", "main_2");
+                    Thread.sleep(1000);
                     return NoResult.value;
                 },
                 NoResult.class,
-                result -> Log.v("aaaaaaaaaaaaaaa", "success"),
-                error -> Log.v("aaaaaaaaaaaaaaa", "error")
+                result -> Log.v("TAG", "success"),
+                error -> Log.v("TAG", "error")
         )
                 .addDependency(AndroidTask.create(taskDependencyResult -> {
-                    Log.v("aaaaaaaaaaaaaaa", "dep1_2");
+                    Log.v("TAG", "dep1_2");
+                    Thread.sleep(1000);
                     return NoResult.value;
                 }, NoResult.class))
                 .addDependency(AndroidTask.create(taskDependencyResult -> {
-                    Log.v("aaaaaaaaaaaaaaa", "dep2_2");
+                    Log.v("TAG", "dep2_2");
+                    Thread.sleep(1000);
                     return NoResult.value;
                 }, NoResult.class)));
 
@@ -64,16 +78,20 @@ public class MainActivity extends AppCompatActivity {
                     return sum;
                 },
                 Integer.class,
-                result -> Log.v("aaaaaaaaaaaaaaa", "success: " + result),
-                error -> Log.v("aaaaaaaaaaaaaaa", "error")
+                result -> Log.v("TAG", "success: " + result),
+                error -> Log.v("TAG", "error")
         )
                 .addDependency(AndroidTask.create(taskDependencyResult -> {
-                    Log.v("aaaaaaaaaaaaaaa", "calc1");
+                    Log.v("TAG", "calc1");
+                    Thread.sleep(1000);
                     return 1;
                 }, Integer.class))
                 .addDependency(AndroidTask.create(taskDependencyResult -> {
-                    Log.v("aaaaaaaaaaaaaaa", "calc2");
+                    Log.v("TAG", "calc2");
+                    Thread.sleep(1000);
                     return 3;
-                }, Integer.class)));
+                }, Integer.class))
+                .setPriority(10)
+        );
     }
 }
