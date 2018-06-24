@@ -19,8 +19,7 @@ public class Queue<T extends Task> {
     }
 
     public synchronized void put(T taskToPut) {
-        tasks.addAll((ArrayList<T>) taskToPut.getDependencies());
-        tasks.add(taskToPut);
+        addTaskToQueue(taskToPut);
         reviewTaskCanBeExecuted();
         if (!tasksCanBeExecuted.isEmpty()) {
             notifyAll();
@@ -64,6 +63,15 @@ public class Queue<T extends Task> {
         tasksCanBeExecuted.remove(task);
         tasksInExecution.add(task);
         return task;
+    }
+
+    private void addTaskToQueue(T task) {
+        if (!tasks.contains(task)) {
+            tasks.add(task);
+        }
+        for(T t: (ArrayList<T>)task.getDependencies()) {
+            addTaskToQueue(t);
+        }
     }
 
     private void reviewTaskCanBeExecuted() {
