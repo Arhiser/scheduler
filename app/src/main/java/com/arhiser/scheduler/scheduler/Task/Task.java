@@ -32,6 +32,10 @@ public abstract class Task<O> implements Cancelable {
         return error != null;
     }
 
+    public boolean isExternal() {
+        return false;
+    }
+
     @Override
     public void cancel() {
         isCancelled = true;
@@ -56,15 +60,21 @@ public abstract class Task<O> implements Cancelable {
         return true;
     }
 
+    public Task<O> addDependency(Task task) {
+        task.parent = this;
+        dependencies.add(task);
+        return this;
+    }
+
     public O getResult() {
         return result;
     }
 
-    public void dispatchSuccess() {
-
+    protected void dispatchSuccess(O result) {
+        this.result = result;
     }
 
-    public void dispatchFailed(Throwable error) {
+    protected void dispatchFailed(Throwable error) {
         this.error = error;
         if (parent != null) {
             if (!parent.isFailed()) {
@@ -80,7 +90,11 @@ public abstract class Task<O> implements Cancelable {
 
     public abstract Class<O> getResultClass();
 
-    public void execute() throws Throwable {
-        result = function.execute(dependencies);
+    public void execute() {
+        try {
+            dispatchSuccess(function.execute(dependencies));
+        } catch (Throwable error) {
+            dispatchFailed(error);
+        }
     }
 }

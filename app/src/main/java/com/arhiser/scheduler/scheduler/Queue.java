@@ -20,6 +20,10 @@ public class Queue<T extends Task> {
 
     public synchronized void put(T taskToPut) {
         addTaskToQueue(taskToPut);
+        notifyUpdate();
+    }
+
+    synchronized void notifyUpdate() {
         reviewTaskCanBeExecuted();
         if (!tasksCanBeExecuted.isEmpty()) {
             notifyAll();
@@ -92,6 +96,7 @@ public class Queue<T extends Task> {
                     && !task.isResolved()
                     && !task.isCancelled()
                     && !task.isFailed()
+                    && !task.isExternal()
                     && !tasksInExecution.contains(task)) {
                 tasksCanBeExecuted.add(task);
             }

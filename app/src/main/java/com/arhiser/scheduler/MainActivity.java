@@ -1,10 +1,12 @@
 package com.arhiser.scheduler;
 
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 
 import com.arhiser.scheduler.implementation.AndroidTask;
+import com.arhiser.scheduler.implementation.AndroidUITask;
 import com.arhiser.scheduler.implementation.priority.PriorityCondition;
 import com.arhiser.scheduler.scheduler.Condition;
 import com.arhiser.scheduler.scheduler.Scheduler;
@@ -29,6 +31,11 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        AndroidUITask<NoResult> testUITask = new AndroidUITask<NoResult> (dependencies -> {
+            Log.v(TAG, "UI task");
+            return NoResult.value;
+        }, scheduler, NoResult.class);
+
         scheduler.post(AndroidTask.create(taskDependencyResult -> {
                     Log.v(TAG, "main");
                     Thread.sleep(1000);
@@ -41,8 +48,8 @@ public class MainActivity extends AppCompatActivity {
         .addDependency(AndroidTask.create(taskDependencyResult -> {
                 Log.v(TAG, "dep1");
                 Thread.sleep(1000);
-                throw new RuntimeException("ggg");
-                //return NoResult.value;
+                //throw new RuntimeException("ggg");
+                return NoResult.value;
             }, NoResult.class))
         .addDependency(AndroidTask.create(taskDependencyResult -> {
                 Log.v(TAG, "dep2");
@@ -55,8 +62,15 @@ public class MainActivity extends AppCompatActivity {
                 Thread.sleep(1000);
                 return NoResult.value;
             }
-        }, NoResult.class)))
+        }, NoResult.class).addDependency(testUITask)))
         );
+
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                testUITask.execute();
+            }
+        }, 10000);
 /*
         scheduler.post(AndroidTask.create(taskDependencyResult -> {
                     Log.v(TAG, "main_2");

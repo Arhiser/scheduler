@@ -32,6 +32,10 @@ public class Scheduler<T extends Task> {
         return task;
     }
 
+    public void notifyQueue() {
+        queue.notifyUpdate();
+    }
+
     public void shutdown() {
         isFinished = true;
         for(Thread thread: threads) {
@@ -45,12 +49,7 @@ public class Scheduler<T extends Task> {
             while (!isFinished) {
                 try {
                     T task = queue.take();
-                    try {
-                        task.execute();
-                        task.dispatchSuccess();
-                    } catch (Throwable error) {
-                        task.dispatchFailed(error);
-                    }
+                    task.execute();
                     queue.onFinishExecution(task);
                 } catch (InterruptedException e) {
 

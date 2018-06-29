@@ -7,15 +7,15 @@ import com.arhiser.scheduler.scheduler.Task.TaskFunction;
 
 public class AndroidTask<O> extends Task<O> {
 
-    private OnResult<O> onResult;
+    protected OnResult<O> onResult;
 
-    private OnError onError;
+    protected OnError onError;
 
-    private Handler handler;
+    protected Handler handler;
 
-    private Class<O> resultClass;
+    protected Class<O> resultClass;
 
-    private int priority;
+    protected int priority;
 
     public static <O> AndroidTask<O> create(TaskFunction<O> function, Class<O> resultClass) {
         return new AndroidTask<>(function, resultClass);
@@ -25,12 +25,12 @@ public class AndroidTask<O> extends Task<O> {
         return new AndroidTask<>(function, resultClass, onResult, onError);
     }
 
-    private AndroidTask(TaskFunction<O> function, Class<O> resultClass) {
+    public AndroidTask(TaskFunction<O> function, Class<O> resultClass) {
         super(function);
         this.resultClass = resultClass;
     }
 
-    private AndroidTask(TaskFunction<O> function, Class<O> resultClass, OnResult<O> onResult, OnError onError) {
+    public AndroidTask(TaskFunction<O> function, Class<O> resultClass, OnResult<O> onResult, OnError onError) {
         this(function, resultClass);
         this.onResult = onResult;
         this.onError = onError;
@@ -43,7 +43,8 @@ public class AndroidTask<O> extends Task<O> {
     }
 
     @Override
-    public void dispatchSuccess() {
+    public void dispatchSuccess(O result) {
+        super.dispatchSuccess(result);
         if (onResult != null) {
             handler.post(new Runnable() {
                 @Override
@@ -52,7 +53,6 @@ public class AndroidTask<O> extends Task<O> {
                 }
             });
         }
-        super.dispatchSuccess();
     }
 
     @Override
